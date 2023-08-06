@@ -275,12 +275,7 @@ int freshcell(void)
     }
 
     else {
-	pthread_mutex_lock(&mutex);
-	res = hp;
-	hp = GET_CDR(hp);
-	SET_CDR(res, 0);
-	fc--;
-	pthread_mutex_unlock(&mutex);
+    error(RESOURCE_ERR, "M&S freshcell", NIL);
     }
 
     return (res);
