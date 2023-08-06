@@ -205,7 +205,6 @@ void *concurrent(void *arg)
 
 	remark_pt = 0;
 
-	//concurrent_sweep_flag = 1;
 	addr = 0;
 	hp = NIL;
 	fc = 0;
@@ -221,9 +220,8 @@ void *concurrent(void *arg)
 	    addr++;
 	}
 
-	/* end of stop the world and into sweep mode */
+	/* end of stop the world */
 	concurrent_stop_flag = 0;
-	//concurrent_sweep_flag = 0;
 	concurrent_flag = 0;
 	DBG_PRINTF("exit   concurrent M&S-GC free=%d\n", fc);
 	pthread_mutex_unlock(&mutex_gc);

@@ -169,7 +169,6 @@ bool multiple_call_next_method;	/* method body has multiple (call-next-method) *
 bool error_flag = false;	/* invoked error? */
 int concurrent_flag = 0;	/* while executing concurrent_flag */
 int concurrent_stop_flag = 0;	/* while remarking&sweeping */
-int concurrent_sweep_flag = 0;	/* while concurrent-sweeping */
 int concurrent_exit_flag = 0;	/* To exit GC thread */
 int parallel_exit_flag = 0;	/* To exit parallel threads */
 /* try function (try time s-exp binary) */

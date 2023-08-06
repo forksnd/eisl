@@ -557,7 +557,6 @@ extern bool multiple_call_next_method;
 extern bool error_flag;
 extern int  concurrent_flag;
 extern int  concurrent_stop_flag;
-extern int  concurrent_sweep_flag;
 extern int  concurrent_exit_flag;
 extern int parallel_exit_flag;
 
