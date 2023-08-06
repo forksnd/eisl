@@ -170,6 +170,7 @@ bool error_flag = false;	/* invoked error? */
 int concurrent_flag = 0;	/* while executing concurrent_flag */
 int concurrent_stop_flag = 0;	/* while remarking&sweeping */
 int concurrent_exit_flag = 0;	/* To exit GC thread */
+int concurrent_wait_flag = 0;   /* wait GC while 1*/
 int parallel_exit_flag = 0;	/* To exit parallel threads */
 /* try function (try time s-exp binary) */
 bool try_flag;			/* true or false */
@@ -213,6 +214,7 @@ pthread_mutex_t mutex;
 pthread_mutex_t mutex1;
 pthread_mutex_t mutex_gc;
 pthread_cond_t cond_gc;
+pthread_cond_t cond_gc1;
 int remark[STACKSIZE];
 int remark_pt = 0;
 int worker_count;
@@ -1760,10 +1762,16 @@ int eval(int addr, int th)
 	} else if ((val = functionp(car(addr)))) {
 	    if (GET_CDR(car(addr)) != NIL)
 		error(UNDEF_FUN, "eval", addr);
+
+		pthread_mutex_lock(&mutex);
+		concurrent_wait_flag = 1;
+		pthread_mutex_unlock(&mutex);
 	    temp = evlis(cdr(addr), th);
 	    examin_sym = car(addr);
 	    st = getETime();
 	    res = apply(val, temp, th);
+		concurrent_wait_flag = 0;
+		pthread_cond_signal(&cond_gc1);
 	    en = getETime();
 	    if (prof_sw == 2)
 		profiler(car(addr), en - st);
@@ -2020,7 +2028,7 @@ void unbind(int th)
 }
 
 
-int evlis(int addr, int th)
+int evlis1(int addr, int th)
 {
     arg_push(addr, th);
     top_flag = false;
@@ -2034,14 +2042,23 @@ int evlis(int addr, int th)
 	pthread_mutex_unlock(&mutex_gc);
 	car_addr = eval(car(addr), th);
 	arg_push(car_addr, th);
-	cdr_addr = evlis(cdr(addr), th);
+	cdr_addr = evlis1(cdr(addr), th);
 	car_addr = arg_pop(th);
 	(void) arg_pop(th);
-	pthread_mutex_lock(&mutex_gc);
-	res = cons(car_addr, cdr_addr);
-	pthread_mutex_unlock(&mutex_gc);
-	return (res);
+	return (cons(car_addr, cdr_addr));
     }
+}
+
+int evlis(int addr, int th)
+{
+	int res;
+	//pthread_mutex_lock(&mutex);
+	//concurrent_wait_flag = 1;
+	//pthread_mutex_unlock(&mutex);
+	res = evlis1(addr, th);
+	//concurrent_wait_flag = 0;
+	//pthread_cond_signal(&cond_gc1);
+	return(res);
 }
 
 /*

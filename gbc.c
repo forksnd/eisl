@@ -141,6 +141,13 @@ void *concurrent(void *arg)
 	if (concurrent_exit_flag)
 	    goto exit;
 
+	if(concurrent_wait_flag){
+	printf("wait gc");
+	pthread_mutex_lock(&mutex);
+	pthread_cond_wait(&cond_gc1, &mutex);
+	pthread_mutex_unlock(&mutex);
+	}
+
 	pthread_mutex_lock(&mutex_gc);
 	DBG_PRINTF("enter  concurrent M&S-GC free=%d\n", fc);
 	concurrent_flag = 1;

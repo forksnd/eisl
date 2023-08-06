@@ -557,6 +557,7 @@ extern bool multiple_call_next_method;
 extern bool error_flag;
 extern int  concurrent_flag;
 extern int  concurrent_stop_flag;
+extern int  concurrent_wait_flag;
 extern int  concurrent_exit_flag;
 extern int parallel_exit_flag;
 
@@ -601,6 +602,7 @@ extern int ed_incomment;
 /* concurrent GC */
 extern pthread_t concurrent_thread;
 extern pthread_cond_t cond_gc;
+extern pthread_cond_t cond_gc1;
 extern pthread_mutex_t mutex;
 extern pthread_mutex_t mutex1;
 extern pthread_mutex_t mutex_gc;
