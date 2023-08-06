@@ -2028,7 +2028,7 @@ int evlis(int addr, int th)
 	arg_pop(th);
 	return (addr);
     } else {
-	int car_addr, cdr_addr;
+	int car_addr, cdr_addr, res;
 
 	pthread_mutex_lock(&mutex_gc);
 	pthread_mutex_unlock(&mutex_gc);
@@ -2037,7 +2037,10 @@ int evlis(int addr, int th)
 	cdr_addr = evlis(cdr(addr), th);
 	car_addr = arg_pop(th);
 	(void) arg_pop(th);
-	return (cons(car_addr, cdr_addr));
+	pthread_mutex_lock(&mutex_gc);
+	res = cons(car_addr, cdr_addr);
+	pthread_mutex_unlock(&mutex_gc);
+	return (res);
     }
 }
 
