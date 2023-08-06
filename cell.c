@@ -320,9 +320,13 @@ void set_dyn_env(int sym, int val, int th)
 /* additinal of lexical variable */
 void add_lex_env(int sym, int val, int th)
 {
-    pthread_mutex_lock(&mutex_gc);
+    pthread_mutex_lock(&mutex);
+	concurrent_wait_flag = 1;
+	pthread_mutex_unlock(&mutex);
     ep[th] = cons(cons(sym, val), ep[th]);
-    pthread_mutex_unlock(&mutex_gc);
+    concurrent_wait_flag = 0;
+	pthread_cond_signal(&cond_gc1);
+    
 }
 
 
