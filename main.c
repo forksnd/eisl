@@ -2029,7 +2029,7 @@ void unbind(int th)
 }
 
 
-int evlis(int addr, int th)
+int evlis1(int addr, int th)
 {
     arg_push(addr, th);
     top_flag = false;
@@ -2039,15 +2039,26 @@ int evlis(int addr, int th)
     } else {
 	int car_addr, cdr_addr, res;
 
-	pthread_mutex_lock(&mutex_gc);
-	pthread_mutex_unlock(&mutex_gc);
 	car_addr = eval(car(addr), th);
 	arg_push(car_addr, th);
-	cdr_addr = evlis(cdr(addr), th);
+	cdr_addr = evlis1(cdr(addr), th);
 	car_addr = arg_pop(th);
 	(void) arg_pop(th);
 	return (cons(car_addr, cdr_addr));
     }
+}
+
+int evlis(int addr, int th)
+{
+	int res;
+
+	pthread_mutex_lock(&mutex);
+	concurrent_wait_flag = 1;
+	pthread_mutex_unlock(&mutex);
+	res = evlis1(addr,th);
+	concurrent_wait_flag = 0;
+	pthread_cond_signal(&cond_gc1);
+	return(res);
 }
 
 
