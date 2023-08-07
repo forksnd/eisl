@@ -57,6 +57,7 @@ int fc;				/* free counter */
 int ap[PARASIZE];		/* arglist pointer */
 int lp[PARASIZE];		/* shelter pointer */
 int cp;				/* tag pointer for catch & throw */
+int pp[PARASIZE];   /* args pointer to protect */
 
 /* class */
 int cobject;
@@ -435,6 +436,7 @@ void init_pointer(void)
 	sp[i] = 0;
 	ap[i] = 0;
 	lp[i] = 0;
+	pp[i] = NIL;
     }
     cp = 0;
     block_pt = 0;
@@ -2056,6 +2058,7 @@ int evlis(int addr, int th)
 	concurrent_wait_flag = 1;
 	pthread_mutex_unlock(&mutex);
 	res = evlis1(addr,th);
+	pp[th] = res;
 	concurrent_wait_flag = 0;
 	pthread_cond_signal(&cond_gc1);
 	concurrent_wait_flag = 0;

@@ -168,6 +168,7 @@ extern int ap[PARASIZE];    // arglist pointer
 extern int lp[PARASIZE];	// shelter pointer
 extern int ac;			    // allocate counter
 extern int cp;              // catch tag pointer
+extern int pp[PARASIZE];    // protect pointer
 
 /* ------class----- */
 extern int cobject;

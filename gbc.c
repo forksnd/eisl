@@ -166,6 +166,10 @@ void *concurrent(void *arg)
 	for (j = 0; j <= worker_count; j++)
 	    mark_cell(ep[j]);
 
+	/* mark protect pointer */
+	for (j = 0; j <= worker_count; j++)
+	    mark_cell(pp[j]);
+
 	/* mark dynamic environment */
 	for (j = 0; j <= worker_count; j++)
 	    mark_cell(dp[j]);
