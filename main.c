@@ -1997,6 +1997,9 @@ void bind_arg(int varlist, int arglist, int th)
 {
     int arg1, arg2;
 
+	pthread_mutex_lock(&mutex);
+	concurrent_wait_flag = 1;
+	pthread_mutex_unlock(&mutex);
     push(ep[th], th);
     push(cp, th);
     while (!(IS_NIL(varlist))) {
@@ -2014,6 +2017,9 @@ void bind_arg(int varlist, int arglist, int th)
 	    arglist = cdr(arglist);
 	}
     }
+	concurrent_wait_flag = 0;
+	pthread_cond_signal(&cond_gc1);
+
 }
 
 void unbind(int th)
@@ -2045,13 +2051,7 @@ int evlis(int addr, int th)
 }
 
 
-	//pthread_mutex_lock(&mutex);
-	//concurrent_wait_flag = 1;
-	//pthread_mutex_unlock(&mutex);
-	//res = evlis1(addr, th);
-	//concurrent_wait_flag = 0;
-	//pthread_cond_signal(&cond_gc1);
-
+	
 
 /*
  * check class matching of argument of lambda and received argument. 
