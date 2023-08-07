@@ -2019,7 +2019,7 @@ void bind_arg(int varlist, int arglist, int th)
     }
 	concurrent_wait_flag = 0;
 	pthread_cond_signal(&cond_gc1);
-
+	//print(ep[th]);printf("\n");
 }
 
 void unbind(int th)
@@ -2058,6 +2058,8 @@ int evlis(int addr, int th)
 	res = evlis1(addr,th);
 	concurrent_wait_flag = 0;
 	pthread_cond_signal(&cond_gc1);
+	concurrent_wait_flag = 0;
+	//print(res); printf("\n");
 	return(res);
 }
 
