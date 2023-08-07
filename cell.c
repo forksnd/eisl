@@ -245,24 +245,14 @@ int freshcell(void)
 	    pthread_mutex_unlock(&mutex);
 	    pthread_mutex_lock(&mutex);
 	}
-	pthread_mutex_unlock(&mutex);
 	res = hp;
 	hp = GET_CDR(hp);
 	SET_CDR(res, 0);
 	fc--;
-
-    } else if (concurrent_sweep_flag) {
-	pthread_mutex_lock(&mutex);
-	while (fc < 50) {
-	    pthread_mutex_unlock(&mutex);
-	    pthread_mutex_lock(&mutex);
-	}
-	res = hp;
-	hp = GET_CDR(hp);
-	SET_CDR(res, 0);
-	fc--;
-	pthread_mutex_unlock(&mutex);
-    } else if (concurrent_flag && fc > 50) {
+    pthread_mutex_unlock(&mutex);
+    
+    }
+	 else if (concurrent_flag && fc > 50) {
 	pthread_mutex_lock(&mutex);
 	res = hp;
 	hp = GET_CDR(hp);
@@ -270,7 +260,8 @@ int freshcell(void)
 	fc--;
 	remark[remark_pt++] = res;
 	pthread_mutex_unlock(&mutex);
-    } else if (!concurrent_flag) {
+    } 
+     else if (!concurrent_flag) {
 	pthread_mutex_lock(&mutex);
 	res = hp;
 	hp = GET_CDR(hp);
@@ -284,12 +275,7 @@ int freshcell(void)
     }
 
     else {
-	pthread_mutex_lock(&mutex);
-	res = hp;
-	hp = GET_CDR(hp);
-	SET_CDR(res, 0);
-	fc--;
-	pthread_mutex_unlock(&mutex);
+    error(RESOURCE_ERR, "M&S freshcell", NIL);
     }
 
     return (res);
@@ -334,8 +320,13 @@ void set_dyn_env(int sym, int val, int th)
 /* additinal of lexical variable */
 void add_lex_env(int sym, int val, int th)
 {
-
+    pthread_mutex_lock(&mutex);
+	concurrent_wait_flag = 1;
+	pthread_mutex_unlock(&mutex);
     ep[th] = cons(cons(sym, val), ep[th]);
+    concurrent_wait_flag = 0;
+	pthread_cond_signal(&cond_gc1);
+    
 }
 
 

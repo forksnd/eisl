@@ -81,7 +81,7 @@
 
 
 static const float VERSION = 3.32;
-static const int FREESIZE = 3000000;
+static const int FREESIZE = 5000000;
 static const int SYMSIZE = 256;
 static const int CHARSIZE = 7;	// unicode char. add \0 to tail
 static const int MATSIZE = 256;
@@ -168,6 +168,7 @@ extern int ap[PARASIZE];    // arglist pointer
 extern int lp[PARASIZE];	// shelter pointer
 extern int ac;			    // allocate counter
 extern int cp;              // catch tag pointer
+extern int pp[PARASIZE];    // protect pointer
 
 /* ------class----- */
 extern int cobject;
@@ -557,7 +558,7 @@ extern bool multiple_call_next_method;
 extern bool error_flag;
 extern int  concurrent_flag;
 extern int  concurrent_stop_flag;
-extern int  concurrent_sweep_flag;
+extern int  concurrent_wait_flag;
 extern int  concurrent_exit_flag;
 extern int parallel_exit_flag;
 
@@ -602,6 +603,7 @@ extern int ed_incomment;
 /* concurrent GC */
 extern pthread_t concurrent_thread;
 extern pthread_cond_t cond_gc;
+extern pthread_cond_t cond_gc1;
 extern pthread_mutex_t mutex;
 extern pthread_mutex_t mutex1;
 extern pthread_mutex_t mutex_gc;

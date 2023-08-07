@@ -57,6 +57,7 @@ int fc;				/* free counter */
 int ap[PARASIZE];		/* arglist pointer */
 int lp[PARASIZE];		/* shelter pointer */
 int cp;				/* tag pointer for catch & throw */
+int pp[PARASIZE];   /* args pointer to protect */
 
 /* class */
 int cobject;
@@ -169,8 +170,8 @@ bool multiple_call_next_method;	/* method body has multiple (call-next-method) *
 bool error_flag = false;	/* invoked error? */
 int concurrent_flag = 0;	/* while executing concurrent_flag */
 int concurrent_stop_flag = 0;	/* while remarking&sweeping */
-int concurrent_sweep_flag = 0;	/* while concurrent-sweeping */
 int concurrent_exit_flag = 0;	/* To exit GC thread */
+int concurrent_wait_flag = 0;   /* wait GC while 1*/
 int parallel_exit_flag = 0;	/* To exit parallel threads */
 /* try function (try time s-exp binary) */
 bool try_flag;			/* true or false */
@@ -214,6 +215,7 @@ pthread_mutex_t mutex;
 pthread_mutex_t mutex1;
 pthread_mutex_t mutex_gc;
 pthread_cond_t cond_gc;
+pthread_cond_t cond_gc1;
 int remark[STACKSIZE];
 int remark_pt = 0;
 int worker_count;
@@ -434,6 +436,7 @@ void init_pointer(void)
 	sp[i] = 0;
 	ap[i] = 0;
 	lp[i] = 0;
+	pp[i] = NIL;
     }
     cp = 0;
     block_pt = 0;
@@ -1761,6 +1764,7 @@ int eval(int addr, int th)
 	} else if ((val = functionp(car(addr)))) {
 	    if (GET_CDR(car(addr)) != NIL)
 		error(UNDEF_FUN, "eval", addr);
+
 	    temp = evlis(cdr(addr), th);
 	    examin_sym = car(addr);
 	    st = getETime();
@@ -1995,6 +1999,9 @@ void bind_arg(int varlist, int arglist, int th)
 {
     int arg1, arg2;
 
+	pthread_mutex_lock(&mutex);
+	concurrent_wait_flag = 1;
+	pthread_mutex_unlock(&mutex);
     push(ep[th], th);
     push(cp, th);
     while (!(IS_NIL(varlist))) {
@@ -2012,6 +2019,9 @@ void bind_arg(int varlist, int arglist, int th)
 	    arglist = cdr(arglist);
 	}
     }
+	concurrent_wait_flag = 0;
+	pthread_cond_signal(&cond_gc1);
+	//print(ep[th]);printf("\n");
 }
 
 void unbind(int th)
@@ -2021,7 +2031,7 @@ void unbind(int th)
 }
 
 
-int evlis(int addr, int th)
+int evlis1(int addr, int th)
 {
     arg_push(addr, th);
     top_flag = false;
@@ -2029,19 +2039,35 @@ int evlis(int addr, int th)
 	arg_pop(th);
 	return (addr);
     } else {
-	int car_addr, cdr_addr;
+	int car_addr, cdr_addr, res;
 
-	pthread_mutex_lock(&mutex_gc);
-	pthread_mutex_unlock(&mutex_gc);
 	car_addr = eval(car(addr), th);
 	arg_push(car_addr, th);
-	cdr_addr = evlis(cdr(addr), th);
-	mark_cell(cdr_addr);
+	cdr_addr = evlis1(cdr(addr), th);
 	car_addr = arg_pop(th);
 	(void) arg_pop(th);
 	return (cons(car_addr, cdr_addr));
     }
 }
+
+int evlis(int addr, int th)
+{
+	int res;
+
+	pthread_mutex_lock(&mutex);
+	concurrent_wait_flag = 1;
+	pthread_mutex_unlock(&mutex);
+	res = evlis1(addr,th);
+	pp[th] = res;
+	concurrent_wait_flag = 0;
+	pthread_cond_signal(&cond_gc1);
+	concurrent_wait_flag = 0;
+	//print(res); printf("\n");
+	return(res);
+}
+
+
+	
 
 /*
  * check class matching of argument of lambda and received argument. 

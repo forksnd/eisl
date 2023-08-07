@@ -141,6 +141,12 @@ void *concurrent(void *arg)
 	if (concurrent_exit_flag)
 	    goto exit;
 
+	if(concurrent_wait_flag){
+	pthread_mutex_lock(&mutex);
+	pthread_cond_wait(&cond_gc1, &mutex);
+	pthread_mutex_unlock(&mutex);
+	}
+
 	pthread_mutex_lock(&mutex_gc);
 	DBG_PRINTF("enter  concurrent M&S-GC free=%d\n", fc);
 	concurrent_flag = 1;
@@ -159,6 +165,11 @@ void *concurrent(void *arg)
 	/* mark local environment */
 	for (j = 0; j <= worker_count; j++)
 	    mark_cell(ep[j]);
+
+	/* mark protect pointer */
+	for (j = 0; j <= worker_count; j++)
+	    mark_cell(pp[j]);
+
 	/* mark dynamic environment */
 	for (j = 0; j <= worker_count; j++)
 	    mark_cell(dp[j]);
@@ -205,7 +216,6 @@ void *concurrent(void *arg)
 
 	remark_pt = 0;
 
-	//concurrent_sweep_flag = 1;
 	addr = 0;
 	hp = NIL;
 	fc = 0;
@@ -221,9 +231,8 @@ void *concurrent(void *arg)
 	    addr++;
 	}
 
-	/* end of stop the world and into sweep mode */
+	/* end of stop the world */
 	concurrent_stop_flag = 0;
-	//concurrent_sweep_flag = 0;
 	concurrent_flag = 0;
 	DBG_PRINTF("exit   concurrent M&S-GC free=%d\n", fc);
 	pthread_mutex_unlock(&mutex_gc);
