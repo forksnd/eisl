@@ -142,7 +142,6 @@ void *concurrent(void *arg)
 	    goto exit;
 
 	if(concurrent_wait_flag){
-	printf("wait gc");
 	pthread_mutex_lock(&mutex);
 	pthread_cond_wait(&cond_gc1, &mutex);
 	pthread_mutex_unlock(&mutex);
@@ -166,6 +165,7 @@ void *concurrent(void *arg)
 	/* mark local environment */
 	for (j = 0; j <= worker_count; j++)
 	    mark_cell(ep[j]);
+
 	/* mark dynamic environment */
 	for (j = 0; j <= worker_count; j++)
 	    mark_cell(dp[j]);

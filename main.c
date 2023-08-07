@@ -1763,15 +1763,10 @@ int eval(int addr, int th)
 	    if (GET_CDR(car(addr)) != NIL)
 		error(UNDEF_FUN, "eval", addr);
 
-		pthread_mutex_lock(&mutex);
-		concurrent_wait_flag = 1;
-		pthread_mutex_unlock(&mutex);
 	    temp = evlis(cdr(addr), th);
 	    examin_sym = car(addr);
 	    st = getETime();
 	    res = apply(val, temp, th);
-		concurrent_wait_flag = 0;
-		pthread_cond_signal(&cond_gc1);
 	    en = getETime();
 	    if (prof_sw == 2)
 		profiler(car(addr), en - st);
@@ -2028,7 +2023,7 @@ void unbind(int th)
 }
 
 
-int evlis1(int addr, int th)
+int evlis(int addr, int th)
 {
     arg_push(addr, th);
     top_flag = false;
@@ -2042,24 +2037,21 @@ int evlis1(int addr, int th)
 	pthread_mutex_unlock(&mutex_gc);
 	car_addr = eval(car(addr), th);
 	arg_push(car_addr, th);
-	cdr_addr = evlis1(cdr(addr), th);
+	cdr_addr = evlis(cdr(addr), th);
 	car_addr = arg_pop(th);
 	(void) arg_pop(th);
 	return (cons(car_addr, cdr_addr));
     }
 }
 
-int evlis(int addr, int th)
-{
-	int res;
+
 	//pthread_mutex_lock(&mutex);
 	//concurrent_wait_flag = 1;
 	//pthread_mutex_unlock(&mutex);
-	res = evlis1(addr, th);
+	//res = evlis1(addr, th);
 	//concurrent_wait_flag = 0;
 	//pthread_cond_signal(&cond_gc1);
-	return(res);
-}
+
 
 /*
  * check class matching of argument of lambda and received argument. 
